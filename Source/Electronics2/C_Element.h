@@ -21,7 +21,7 @@ class ELECTRONICS2_API AC_Element : public AActor
 public:
 
 	UPROPERTY(EditAnywhere)
-	TMap<UPrimitiveComponent*, FVector> Sockets;
+	TArray<UPrimitiveComponent*> Sockets;
 
 	AC_Element(){
 		PrimaryActorTick.bCanEverTick = true;
@@ -35,7 +35,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void AddSocket(UPaperSpriteComponent *Socket) {
 		if (!IsValid(Socket) || Socket == NULL)return;
-		Sockets.Add(Socket, Socket->GetComponentLocation()-GetActorLocation());
+		Sockets.Add(Socket);
 		Socket->SetTranslucentSortPriority(1);
 	}
 
@@ -48,17 +48,7 @@ protected:
 		return Sockets.Contains(Socket);
 	}
 
-	UFUNCTION(BlueprintCallable, BlueprintPure)
-		bool GetSocketStartingPosition(UPrimitiveComponent *Socket, FVector &StartingLocation) {
-		if (!IsValid(Socket))return false;
-		bool flag = Sockets.Contains(Socket);
-		if (!flag)return false;		
-		StartingLocation = Sockets[Socket] + GetActorLocation();
-		return true;
-	}
 
-
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 
@@ -117,20 +107,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 		static FVector QuantizePosition(FVector InLocation, FVector Delta = FVector(0, 50, 0)) {
 
-		float y = InLocation.Y;
-		float z = InLocation.Z;
+		auto fun = [](int x, int y) {
+			if (x > 0)return x / 100 * 100 + 50;
+			else return -(-x / 100) * 100 - 50;
+		};
 
-		bool bNegativeY = y < 0;
-		bool bNegativeZ = z < 0;
-
-		y = (int)std::abs(y + 25) / 100 * 100;
-		z = (int)std::abs(z + 25) / 100 * 100 + 50;
-
-		if (bNegativeY)y = -y;
-		if (bNegativeZ)z = -z;
-
-
-		return FVector(0, y, z) + Delta;
+		return FVector(0, fun(InLocation.Y, Delta.Y), fun(InLocation.Z, Delta.Z));
 	}
 
 	UFUNCTION(BlueprintCallable)
@@ -148,8 +130,9 @@ public:
 		if (bNegativeY)y = -y;
 		if (bNegativeZ)z = -z;
 
-
 		SetActorLocation(FVector(0, y, z) + DeltaLocation);
+
+
 
 	}
 
