@@ -23,6 +23,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<UPrimitiveComponent*> Sockets;
 
+	UFUNCTION(BlueprintCallable)
+		void ClearSockets() { Sockets.Empty(); }
+
 	AC_Element(){
 		PrimaryActorTick.bCanEverTick = true;
 	}
@@ -48,8 +51,18 @@ protected:
 		return Sockets.Contains(Socket);
 	}
 
+	virtual void BeginPlay() override
+	{
+		Super::BeginPlay();
+	}
 
-	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override
+	{
+		Super::Tick(DeltaTime);
+
+	}
+
+
 
 
 #if WITH_EDITOR
@@ -95,8 +108,6 @@ protected:
 #endif
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		FVector DeltaLocation = FVector(0, 50, 0);
@@ -116,22 +127,12 @@ public:
 	}
 
 	UFUNCTION(BlueprintCallable)
-		virtual void SetElementPosition(FVector InLocation, UPrimitiveComponent *Component) {
+		virtual void SetElementPosition(FVector InLocation, UPrimitiveComponent *Component, FVector &OutLocation) {
 
-		float y = InLocation.Y;
-		float z = InLocation.Z;
+		FVector Location = QuantizePosition(InLocation, DeltaLocation);
 
-		bool bNegativeY = y < 0;
-		bool bNegativeZ = z < 0;
-
-		y = (int)std::abs(y + 25) / 100 * 100;
-		z = (int)std::abs(z + 25) / 100 * 100 + 50;
-
-		if (bNegativeY)y = -y;
-		if (bNegativeZ)z = -z;
-
-		SetActorLocation(FVector(0, y, z) + DeltaLocation);
-
+		SetActorLocation(Location);
+		OutLocation = Location;
 
 
 	}
