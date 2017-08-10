@@ -24,6 +24,7 @@ class ELECTRONICS2_API AC_ElectronicsHUD : public AHUD
 	GENERATED_BODY()
 	
 	
+public:
 
 	
 };

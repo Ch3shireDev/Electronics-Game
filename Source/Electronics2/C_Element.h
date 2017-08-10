@@ -24,6 +24,16 @@ public:
 	TArray<UPrimitiveComponent*> Sockets;
 
 	UFUNCTION(BlueprintCallable)
+		UPrimitiveComponent* GetSocketOnLocation(FVector InLocation) {
+		for (int i = 0; i < Sockets.Num(); i++) {
+			if (!IsValid(Sockets[i]))continue;
+			FVector ComponentLocation = Sockets[i]->GetComponentLocation();
+			if (FVector::Dist(ComponentLocation, InLocation) < 50)return Sockets[i];
+		}
+		return NULL;
+	}
+
+	UFUNCTION(BlueprintCallable)
 		void ClearSockets() { Sockets.Empty(); }
 
 	AC_Element(){

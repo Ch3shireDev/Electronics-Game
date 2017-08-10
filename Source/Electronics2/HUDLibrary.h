@@ -7,6 +7,7 @@
 #include "C_Element.h"
 #include "HUDLibrary.generated.h"
 
+class UPrimitiveComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ELECTRONICS2_API UHUDLibrary : public UActorComponent
@@ -17,6 +18,22 @@ class ELECTRONICS2_API UHUDLibrary : public UActorComponent
 		TArray<AC_Element*> Elements;
 
 public:	
+
+	UFUNCTION(BlueprintCallable)
+	void GetConnectedElement(FVector InLocation, AC_Element* &Element, UPrimitiveComponent* &Component) {
+		for (int i = 0; i < Elements.Num(); i++) {
+			if (!IsValid(Elements[i]))continue;
+			Component = Elements[i]->GetSocketOnLocation(InLocation);
+			if (Component != NULL) { 
+				Element = Elements[i];
+				return;
+			}
+		}
+		Element = NULL;
+		Component = NULL;
+		return;
+	}
+
 	UHUDLibrary()	{
 		PrimaryComponentTick.bCanEverTick = true;
 		Elements.Empty();
