@@ -4,11 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "C_Element.h"
 #include "C_ElectronicsHUD.generated.h"
-
-/**
- * 
- */
 
 UENUM(BlueprintType)
 enum class EHoldType : uint8
@@ -22,9 +19,35 @@ UCLASS()
 class ELECTRONICS2_API AC_ElectronicsHUD : public AHUD
 {
 	GENERATED_BODY()
-	
-	
+
+	UPROPERTY(EditAnywhere)
+		TArray<AC_Element*> Elements;
+
 public:
+
+	AC_ElectronicsHUD() {
+		Elements.Empty();
+	}
+
+	UFUNCTION(BlueprintCallable)
+		virtual void GetConnectedElement(FVector InLocation, AC_Element* &Element, UPrimitiveComponent* &Component) {
+		for (int i = 0; i < Elements.Num(); i++) {
+			if (!IsValid(Elements[i]))continue;
+			Component = Elements[i]->GetSocketOnLocation(InLocation);
+			if (Component != NULL) {
+				Element = Elements[i];
+				return;
+			}
+		}
+		Element = NULL;
+		Component = NULL;
+		return;
+	}
+
+	UFUNCTION(BlueprintCallable)
+		void RegisterElement(AC_Element* Element) {
+		Elements.Add(Element);
+	}
 
 	
 };

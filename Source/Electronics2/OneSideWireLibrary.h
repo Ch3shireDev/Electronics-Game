@@ -4,7 +4,16 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "C_Element.h"
 #include "OneSideWireLibrary.generated.h"
+
+UENUM(BlueprintType)
+enum class EWireEndType : uint8
+{
+	VE_ElementA 		UMETA(DisplayName = "WireStart"),
+	VE_ElementB			UMETA(DisplayName = "WireEnd")
+};
+
 
 UCLASS()
 class ELECTRONICS2_API UOneSideWireLibrary : public UActorComponent
@@ -13,15 +22,64 @@ class ELECTRONICS2_API UOneSideWireLibrary : public UActorComponent
 
 		TArray<FVector> NodePositions;
 
-	UOneSideWireLibrary() {}
-
-protected:
-	virtual void BeginPlay() override{}
-
 public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override{}
 
+	AC_Element *ElementA, *ElementB;
+
+	bool bIsCurrentOn = false;
+	float Current = 1;
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentState(bool bNewCurrent = false) {
+		bIsCurrentOn = bNewCurrent;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	void SetCurrentValue(float InCurrent = 1.0f) {
+		Current = InCurrent;
+	}
+
+	UFUNCTION(BlueprintCallable)
+	bool GetCurrentState() { return bIsCurrentOn; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCurrentValue() { return Current; }
+
+	UFUNCTION(BlueprintCallable)
+	void DrawCurrentFlow() {
+		if (!bIsCurrentOn)return;
+
+		for (int i = 0; i < NodePositions.Num()-1; i++) {
+			FVector LocA = NodePositions[i], LocB = NodePositions[i + 1];
+
+			FVector Position = NodePositions[i];
+
+			double alpha = FPlatformTime::Seconds()/Current;
+			alpha -= (int)alpha;
+
+			Position = LocA + (LocB - LocA)*alpha;
+
+			UKismetSystemLibrary::DrawDebugSphere(this, Position, 10, 10, FLinearColor::Black, 0, 0);
+		}
+	}
+
+
+	UFUNCTION(BlueprintCallable)
+		void SetConnectedElement(AC_Element *InElement, EWireEndType WireEnd) {
+		if (!IsValid(InElement))return;
+		if (WireEnd == EWireEndType::VE_ElementA) {
+			GLog->Log("Wire A");
+			if (!IsValid(ElementA))ElementA = InElement;
+		}
+		else {
+			if (!IsValid(ElementB) && InElement != ElementA)ElementB = InElement;
+		}
+	}
+
+	UFUNCTION(BlueprintCallable)
+		bool IsTwoSidedConnected() {
+		return IsValid(ElementA) && IsValid(ElementB) && ElementA != ElementB;
+	}
 
 	UFUNCTION(BlueprintCallable)
 
